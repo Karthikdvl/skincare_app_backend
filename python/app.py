@@ -22,7 +22,7 @@ pymysql.install_as_MySQLdb()
 
 from werkzeug.utils import secure_filename
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"python/Tesseract-OCR/tesseract.exe"  # Update path as per your system
+pytesseract.pytesseract.tesseract_cmd = r"Tesseract-OCR/tesseract.exe"  # Update path as per your system
 from PIL import Image
 import cv2
 import numpy as np
@@ -31,9 +31,12 @@ import smtplib
 import random
 
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Enable CORS
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@127.0.0.1/skindatabase'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -60,6 +63,74 @@ class User(db.Model):
 
 otp_store = {}
 
+#-----------------------------------------------------------
+
+
+# Send OTP route
+@app.route('/send-otp-delete', methods=['POST'])
+def send_otp_delete():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+
+        # Generate a random 6-digit OTP
+        otp = str(random.randint(100000, 999999))
+        otp_store[email] = otp
+
+        # SMTP server configuration
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "ingreskin@gmail.com"  # Replace with your email
+        sender_password = "zjms yyux woqq fqmz"  # Replace with your app password
+
+        # Email content
+        subject = "Your OTP Code for Account Deletion"
+        body = f"Dear user,\n\nYour OTP code for account deletion is: {otp}\n\nThis code is valid for 5 minutes.\n\nRegards,\nTeam\nIngreSkin"
+        message = f"Subject: {subject}\n\n{body}"
+
+        # Sending the email
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, email, message)
+
+        return jsonify({"message": "OTP sent successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Verify OTP and delete account route
+@app.route('/verify-otp-delete-account', methods=['POST'])
+def verify_otp_delete_account():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        otp = data.get('otp')
+
+        if not email or not otp:
+            return jsonify({"error": "Email and OTP are required"}), 400
+
+        stored_otp = otp_store.get(email)
+        if stored_otp and stored_otp == otp:
+            # Delete account after OTP verification
+            user = User.query.filter_by(email=email).first()
+            if user:
+                db.session.delete(user)
+                db.session.commit()
+                del otp_store[email]  # Remove OTP after successful verification
+                return jsonify({"message": f"Account associated with {email} deleted successfully"}), 200
+            else:
+                return jsonify({"error": "No account found with this email"}), 404
+        else:
+            return jsonify({"error": "Invalid OTP"}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+#---------------------------------------------------------------------------
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
     try:
@@ -76,8 +147,8 @@ def send_otp():
         # SMTP server configuration
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        sender_email = "dvlkarthik123@gmail.com"  # Replace with your email
-        sender_password = "unai tsay ngdl ahqa" # Replace with your app password
+        sender_email = "ingreskin@gmail.com"  # Replace with your email
+        sender_password = "zjms yyux woqq fqmz"  # Replace with your app password
 
         # Email content
         subject = "Your One-Time OTP Code for Verification"
@@ -96,7 +167,7 @@ def send_otp():
         
         Best regards,
         [INGRESKIN]
-        [support : dvlkarthik123@gmail.com]
+        [support : ingreskin@gmail.com]
         """
         message = f"Subject: {subject}\n\n{body}"
 
@@ -496,7 +567,7 @@ clean_ingreds = set()
 def load_clean_ingredients():
     global clean_ingreds
     try:
-        df = pd.read_csv("python/skincare_products_clean.csv")
+        df = pd.read_csv("skincare_products_clean.csv")
         clean_ingreds = set(df['clean_ingreds'].str.lower().str.strip())
         print(f"Loaded {len(clean_ingreds)} clean ingredients.")
     except Exception as e:
@@ -650,4 +721,4 @@ def remove_product_tracking(product_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5012)
