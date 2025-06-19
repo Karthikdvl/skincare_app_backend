@@ -130,6 +130,33 @@ def verify_otp_delete_account():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+#--------------------------------------------------------------------
+@app.route('/delete-account', methods=['POST'])
+def delete_account():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        if not bcrypt.check_password_hash(user.password_hash, password):
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        db.session.delete(user)
+        db.session.commit()
+
+        return jsonify({"message": f"Account associated with {email} deleted successfully"}), 200
+
+    except Exception as e:
+        print("🔥 Exception in delete-account:", e)
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
+
 #---------------------------------------------------------------------------
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
