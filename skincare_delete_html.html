@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Account with OTP</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Delete Account</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -51,61 +51,29 @@
 <body>
     <div class="container">
         <h1>Delete Account</h1>
-        <p>Enter your email to receive an OTP for account deletion:</p>
-        <form id="otpForm">
-            <input type="email" id="email" placeholder="Enter your email" required>
-            <button type="button" id="sendOtpButton">Send OTP</button>
-        </form>
-        <form id="verifyForm" style="display: none;">
-            <input type="text" id="otp" placeholder="Enter OTP" required>
-            <button type="button" id="verifyOtpButton">Verify & Delete Account</button>
+        <p>Enter your credentials to delete your account:</p>
+        <form id="deleteForm">
+            <input type="email" id="email" placeholder="Enter your email" required />
+            <input type="password" id="password" placeholder="Enter your password" required />
+            <button type="submit">Delete Account</button>
         </form>
         <p id="responseMessage" class="message"></p>
     </div>
 
     <script>
-        const sendOtpButton = document.getElementById('sendOtpButton');
-        const verifyOtpButton = document.getElementById('verifyOtpButton');
-        const otpForm = document.getElementById('otpForm');
-        const verifyForm = document.getElementById('verifyForm');
+        const deleteForm = document.getElementById('deleteForm');
         const responseMessage = document.getElementById('responseMessage');
 
-        sendOtpButton.addEventListener('click', async () => {
+        deleteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/send-otp-delete', {
+                const response = await fetch('http://127.0.0.1:5000/delete-account', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    responseMessage.style.color = 'green';
-                    responseMessage.textContent = result.message;
-                    otpForm.style.display = 'none';
-                    verifyForm.style.display = 'block';
-                } else {
-                    responseMessage.style.color = 'red';
-                    responseMessage.textContent = result.error;
-                }
-            } catch (error) {
-                responseMessage.style.color = 'red';
-                responseMessage.textContent = 'Failed to send OTP. Please try again.';
-            }
-        });
-
-        verifyOtpButton.addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const otp = document.getElementById('otp').value;
-
-            try {
-                const response = await fetch('http://127.0.0.1:5000/verify-otp-delete-account', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, otp })
+                    body: JSON.stringify({ email, password })
                 });
 
                 const result = await response.json();
@@ -119,7 +87,7 @@
                 }
             } catch (error) {
                 responseMessage.style.color = 'red';
-                responseMessage.textContent = 'Failed to verify OTP. Please try again.';
+                responseMessage.textContent = 'Failed to delete account. Please try again.';
             }
         });
     </script>
