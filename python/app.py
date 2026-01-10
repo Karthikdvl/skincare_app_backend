@@ -40,7 +40,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@127.0.0.1/skindatabase'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'karthik'
+app.config['SECRET_KEY'] = ''
 bcrypt = Bcrypt(app)
 
 db = SQLAlchemy(app)
@@ -83,8 +83,8 @@ def send_otp_delete():
         # SMTP server configuration
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        sender_email = "ingreskin@gmail.com"  # Replace with your email
-        sender_password = "zjms yyux woqq fqmz"  # Replace with your app password
+        sender_email = ""  # Replace with your email
+        sender_password = ""  # Replace with your app password
 
         # Email content
         subject = "Your OTP Code for Account Deletion"
@@ -174,8 +174,8 @@ def send_otp():
         # SMTP server configuration
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        sender_email = "ingreskin@gmail.com"  # Replace with your email
-        sender_password = "zjms yyux woqq fqmz"  # Replace with your app password
+        sender_email = ""  # Replace with your email
+        sender_password = ""  # Replace with your app password
 
         # Email content
         subject = "Your One-Time OTP Code for Verification"
